@@ -4,6 +4,8 @@ FROM datajoint/mysql:5.7
 
 ENV MYSQL_ROOT_PASSWORD simple
 ENV MYSQL_DATABASE mymysql
+EXPOSE 3306
+RUN mysqld
 
 FROM continuumio/anaconda3
 # install the notebook package
