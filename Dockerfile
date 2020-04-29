@@ -8,8 +8,10 @@ EXPOSE 3306
 # COPY ./docker-entrypoint.sh /
 # ENTRYPOINT ["/docker-entrypoint.sh"]
 
-FROM docker/compose:latest
-RUN docker-compose up -d
+FROM docker:latest
+RUN apk add --no-cache py-pip python-dev libffi-dev openssl-dev gcc libc-dev make && \
+    pip install docker-compose && \
+    docker-compose up -d
 
 FROM continuumio/anaconda3
 # install the notebook package
