@@ -1,11 +1,15 @@
 # run mysql
 ## Pull the mysql:5.6 image
-FROM datajoint/mysql:5.7
+# FROM datajoint/mysql:5.7
 
-ENV MYSQL_ROOT_PASSWORD simple
-ENV MYSQL_DATABASE mymysql
+# ENV MYSQL_ROOT_PASSWORD simple
+# ENV MYSQL_DATABASE mymysql
 EXPOSE 3306
-RUN mysqld
+# COPY ./docker-entrypoint.sh /
+# ENTRYPOINT ["/docker-entrypoint.sh"]
+
+FROM docker/compose
+RUN docker-compose up -d
 
 FROM continuumio/anaconda3
 # install the notebook package
