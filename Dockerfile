@@ -1,5 +1,5 @@
 FROM debian:latest
-RUN apt-get git
+RUN apt install git-all
 
 FROM python:3.7-slim
 # install the notebook package
