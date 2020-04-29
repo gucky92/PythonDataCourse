@@ -1,10 +1,11 @@
-FROM jupyter/scipy-notebook:cf6258237ff9
+FROM conda/miniconda3
 
 # install the notebook package
 RUN pip install --no-cache --upgrade pip && \
     pip install --no-cache notebook && \
     pip install seaborn && \
-    pip install git+https://github.com/gucky92/datajoint-python
+    pip install git+https://github.com/gucky92/datajoint-python && \
+    pip install scikit-learn
 
 
 # create user with a home directory
