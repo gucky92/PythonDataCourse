@@ -1,0 +1,2 @@
+seaborn
+git+https://github.com/gucky92/datajoint-python.git
