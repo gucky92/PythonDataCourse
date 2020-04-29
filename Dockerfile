@@ -8,7 +8,7 @@ EXPOSE 3306
 # COPY ./docker-entrypoint.sh /
 # ENTRYPOINT ["/docker-entrypoint.sh"]
 
-FROM docker/compose
+FROM docker/compose:latest
 RUN docker-compose up -d
 
 FROM continuumio/anaconda3
