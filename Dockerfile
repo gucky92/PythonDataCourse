@@ -1,17 +1,12 @@
-FROM debian:latest
-RUN apt install git-all
-
-FROM python:3.7-slim
+FROM continuumio/anaconda3
 # install the notebook package
 RUN pip install --no-cache --upgrade pip && \
     pip install --no-cache notebook && \
-    pip install seaborn && \
+    conda install seaborn && \
     python -m pip install git+https://github.com/gucky92/datajoint-python.git
 
 # expose mysql-docker
 EXPOSE 3306
-
-
 
 # create user with a home directory
 ARG NB_USER
