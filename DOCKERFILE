@@ -1,14 +1,25 @@
-FROM conda/miniconda3
+# Following from the minimal Binder Dockerfile example
+# https://github.com/binder-examples/minimal-dockerfile
 
-# install the notebook package
-RUN pip install --no-cache --upgrade pip && \
-    pip install --no-cache notebook && \
-    pip install seaborn && \
-    pip install git+https://github.com/gucky92/datajoint-python && \
-    pip install scikit-learn
+FROM python:3.7-slim
+USER root
 
+# Install mysql-server
+# root user will have no/blank password
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get -y install \
+        sudo \
+        curl \
+        build-essential \
+        git && \
+    curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install \
+        nodejs \
+        npm \
+        mysql-server
 
-# create user with a home directory
+# Create user with a home directory
 ARG NB_USER
 ARG NB_UID
 ENV USER ${NB_USER}
@@ -18,51 +29,30 @@ RUN adduser --disabled-password \
     --gecos "Default user" \
     --uid ${NB_UID} \
     ${NB_USER}
-COPY . ${HOME}
-USER root
-RUN chown -R ${NB_UID} ${HOME}
-USER ${NB_USER}
-
 WORKDIR ${HOME}
 
-ARG  MYSQL_VER=5.7
-FROM mysql:5.7
+ADD . ${HOME}
 
-RUN \
-    apt-get update && \
-    apt-get -y install openssl && \
-    mkdir /mysql_keys && \
-    chown mysql:mysql /mysql_keys
+# Download and install the MySQL example employees database
+# c.f. https://github.com/datacharmer/test_db
+RUN git clone --depth 1 https://github.com/datacharmer/test_db.git datbases/test_db && \
+    cd datbases/test_db && \
+    printf "\n### Start MySQL server\n### /etc/init.d/mysql start\n" && \
+    /etc/init.d/mysql start && \
+    printf "\n### mysql -u root < employees.sql\n" && \
+    mysql -u root < employees.sql && \
+    cd ${HOME} && \
+    printf "\n### Add jovyan as MySQL user\n### mysql -u root < binder/add_user.sql\n" && \
+    mysql -u root < binder/add_user.sql && \
+    echo "${USER} ALL=/sbin//etc/init.d/mysql start" >> /etc/sudoers && \
+    echo "${USER} ALL=/sbin//etc/init.d/mysql stop" >> /etc/sudoers && \
+    echo "${USER} ALL=/sbin//etc/init.d/mysql restart" >> /etc/sudoers
 
-RUN \
-    cd /mysql_keys;\
-    # Create CA certificate
-    openssl genrsa 2048 > ca-key.pem;\
-    openssl req -subj '/CN=CA/O=MySQL/C=US' -new -x509 -nodes -days 3600 \
-            -key ca-key.pem -out ca.pem;\
-    # Create server certificate, remove passphrase, and sign it
-    # server-cert.pem = public key, server-key.pem = private key
-    openssl req -subj '/CN=SV/O=MySQL/C=US' -newkey rsa:2048 -days 3600 \
-            -nodes -keyout server-key.pem -out server-req.pem;\
-    openssl rsa -in server-key.pem -out server-key.pem;\
-    openssl x509 -req -in server-req.pem -days 3600 \
-            -CA ca.pem -CAkey ca-key.pem -set_serial 01 -out server-cert.pem;\
-    # Create client certificate, remove passphrase, and sign it
-    # client-cert.pem = public key, client-key.pem = private key
-    openssl req -subj '/CN=CL/O=MySQL/C=US' -newkey rsa:2048 -days 3600 \
-            -nodes -keyout client-key.pem -out client-req.pem;\
-    openssl rsa -in client-key.pem -out client-key.pem;\
-    openssl x509 -req -in client-req.pem -days 3600 \
-            -CA ca.pem -CAkey ca-key.pem -set_serial 01 -out client-cert.pem
+# Install the notebook package and install jupyterlab-sql extension
+RUN pip install --no-cache --upgrade pip setuptools wheel && \
+    pip install --no-cache notebook && \
+    pip install --upgrade --no-cache -e .
+RUN jupyter serverextension enable jupyterlab_sql --py --sys-prefix && \
+    jupyter lab build
 
-ADD my.cnf /etc/mysql/my.cnf
-ENV MYSQL_ROOT_PASSWORD=simple
-
-HEALTHCHECK       \
-    --timeout=5s \
-    --retries=60  \
-    --interval=1s \
-    CMD           \
-        mysql --protocol TCP -u"root" -p"simple" -e "show databases;"
-
-EXPOSE 3306
+USER ${USER}

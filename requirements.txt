@@ -1,0 +1,7 @@
+pandas
+scipy
+scikit-learn
+matplotlib
+ipython-sql
+seaborn
+git+https://github.com/gucky92/datajoint-python.git
