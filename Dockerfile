@@ -1,12 +1,16 @@
+# run mysql
+## Pull the mysql:5.6 image
+FROM datajoint/mysql:5.7
+
+ENV MYSQL_ROOT_PASSWORD simple
+ENV MYSQL_DATABASE mymysql
+
 FROM continuumio/anaconda3
 # install the notebook package
 RUN pip install --no-cache --upgrade pip && \
     pip install --no-cache notebook && \
     conda install seaborn && \
     python -m pip install git+https://github.com/gucky92/datajoint-python.git
-
-# expose mysql-docker
-EXPOSE 3306
 
 # create user with a home directory
 ARG NB_USER
