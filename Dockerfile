@@ -7,15 +7,28 @@
 # RUN docker-compose up -d
 # run mysql
 ## Pull the mysql:5.6 image
-FROM datajoint/mysql:5.7
+FROM ubuntu:16.04
+RUN apt-get update \
+    &&  apt-get -y install mysql-server \
+    &&  service mysql start \
+    &&  mysqladmin -u root password simple
+# FROM datajoint/mysql:5.7
+# ENV MYSQL_ROOT_PASSWORD simple
+# FROM ubuntu:16.04
+# ADD . /app
+# WORKDIR /app
 
-ENV MYSQL_ROOT_PASSWORD simple
-ENV MYSQL_DATABASE mymysql
-EXPOSE 3306
+ENTRYPOINT service mysql start
+# RUN mysqld --initialize
+# RUN apt-get update && \
+#    apt-get install -y mysql-server && \
+#    mysql_secure_installation --defaults_file=my.cnf
 # RUN
 # RUN service mysqld start
 # COPY ./docker-entrypoint.sh /
 # ENTRYPOINT ["/docker-entrypoint.sh"]
+
+EXPOSE 3306
 
 FROM continuumio/anaconda3
 # install the notebook package
